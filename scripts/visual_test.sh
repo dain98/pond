@@ -32,7 +32,8 @@ rm -f "$ARTIFACT_DIR"/*.png "$ARTIFACT_DIR"/*.log
 render_movie() {
   local output_name="$1"
   local frame_count="$2"
-  shift 2
+  local capture_index="$3"
+  shift 3
 
   LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" \
     "$GODOT_BIN" --path "$ROOT_DIR" --rendering-method gl_compatibility \
@@ -40,16 +41,16 @@ render_movie() {
     --quit-after "$frame_count" -- "$@" \
     >"$ARTIFACT_DIR/$output_name.log" 2>&1
 
-  local final_frame
-  final_frame="$(find "$WORK_DIR" -maxdepth 1 -type f -name "$output_name*.png" | sort | tail -n 1)"
-  if [[ -z "$final_frame" ]]; then
-    echo "No rendered frame was produced for $output_name." >&2
+  local capture_frame
+  printf -v capture_frame '%s/%s%08d.png' "$WORK_DIR" "$output_name" "$capture_index"
+  if [[ ! -f "$capture_frame" ]]; then
+    echo "Rendered frame $capture_index was not produced for $output_name." >&2
     return 1
   fi
-  cp "$final_frame" "$ARTIFACT_DIR/$output_name.png"
+  cp "$capture_frame" "$ARTIFACT_DIR/$output_name.png"
 }
 
-render_movie host 6 --server --name=VisualHost
+render_movie host 12 8 --server --name=VisualHost
 
 "$GODOT_BIN" --headless --path "$ROOT_DIR" -- \
   --server --name=VisualHost --run-seconds=5 \
@@ -57,7 +58,7 @@ render_movie host 6 --server --name=VisualHost
 SERVER_PID=$!
 
 sleep 0.75
-render_movie joined 60 --join=127.0.0.1 --name=VisualGuest
+render_movie joined 60 45 --join=127.0.0.1 --name=VisualGuest
 
 wait "$SERVER_PID"
 SERVER_PID=""

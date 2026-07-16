@@ -28,6 +28,7 @@ same cozy place, talk, and fish together.
 6. [Town, housing, and activities](06-town-housing-activities.md)
 7. [Art and audio direction](07-art-audio.md)
 8. [Safety, testing, and release](08-safety-testing-release.md)
+9. [Pixel-art visual direction](09-visual-direction.md)
 
 ## First development target
 

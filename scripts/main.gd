@@ -14,6 +14,8 @@ var automated_input_enabled := false
 var automated_direction := Vector2.ZERO
 var automated_spawn_position := Vector2.ZERO
 var movement_observed_logged := false
+var visual_elapsed := 0.0
+var water_frame := 0
 
 var name_edit: LineEdit
 var address_edit: LineEdit
@@ -33,6 +35,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_update_local_input()
+	visual_elapsed += delta
+	var next_water_frame := int(visual_elapsed * 3.0) % 4
+	if next_water_frame != water_frame:
+		water_frame = next_water_frame
+		queue_redraw()
 
 	if _network_is_active() and multiplayer.is_server():
 		snapshot_elapsed += delta
@@ -48,44 +55,176 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	# Placeholder town green and lounge floor.
-	draw_rect(Rect2(0.0, 0.0, 1280.0, 720.0), Color("8ab17d"))
-	draw_rect(Rect2(42.0, 126.0, 455.0, 520.0), Color("d9c39a"))
-	draw_rect(Rect2(42.0, 126.0, 455.0, 18.0), Color("6f5643"))
-	draw_rect(Rect2(42.0, 126.0, 18.0, 520.0), Color("6f5643"))
-	draw_rect(Rect2(479.0, 126.0, 18.0, 520.0), Color("6f5643"))
+	_draw_ground()
+	_draw_lounge()
+	_draw_pond()
+	_draw_dock()
+	_draw_props()
 
-	# Lounge tables and rugs.
-	draw_rect(Rect2(96.0, 250.0, 150.0, 96.0), Color("bc8f6a"))
-	draw_circle(Vector2(160.0, 430.0), 43.0, Color("755c48"))
-	draw_circle(Vector2(365.0, 278.0), 43.0, Color("755c48"))
-	draw_rect(Rect2(286.0, 428.0, 150.0, 110.0), Color("aa6f73"))
 
-	# A simple pond with a rim matching its collision shape.
-	draw_circle(Vector2(940.0, 390.0), 211.0, Color("d9c995"))
-	draw_circle(Vector2(940.0, 390.0), 199.0, Color("4d98a6"))
-	draw_circle(Vector2(906.0, 352.0), 139.0, Color("5cabb4"))
-	draw_circle(Vector2(835.0, 314.0), 8.0, Color("94bb70"))
-	draw_circle(Vector2(1024.0, 464.0), 10.0, Color("94bb70"))
+func _draw_ground() -> void:
+	draw_rect(Rect2(0.0, 0.0, 640.0, 360.0), Color("5e8b55"))
 
-	# Dock.
-	draw_rect(Rect2(686.0, 348.0, 145.0, 78.0), Color("a8774f"))
-	for x in range(696, 831, 22):
-		draw_line(Vector2(x, 352.0), Vector2(x, 422.0), Color("6f4b39"), 2.0)
+	var dark_patches: Array[Rect2] = [
+		Rect2(3, 42, 38, 15), Rect2(252, 18, 28, 11), Rect2(292, 286, 40, 16),
+		Rect2(563, 17, 52, 14), Rect2(591, 309, 35, 18), Rect2(9, 324, 46, 19),
+	]
+	for patch in dark_patches:
+		draw_rect(patch, Color("527c4b"))
+		draw_rect(Rect2(patch.position + Vector2(4, 3), patch.size - Vector2(9, 7)), Color("66945a"))
+
+	var path_points := PackedVector2Array([
+		Vector2(252, 354), Vector2(275, 294), Vector2(269, 236),
+		Vector2(292, 180), Vector2(284, 122), Vector2(320, 55), Vector2(352, -8),
+	])
+	draw_polyline(path_points, Color("b8955f"), 54.0, false)
+	draw_polyline(path_points, Color("d0b174"), 43.0, false)
+
+	var path_stones: Array[Rect2] = [
+		Rect2(257, 331, 15, 6), Rect2(274, 301, 9, 5), Rect2(257, 266, 17, 7),
+		Rect2(274, 225, 13, 6), Rect2(279, 190, 18, 7), Rect2(276, 151, 10, 5),
+		Rect2(295, 111, 17, 6), Rect2(308, 72, 12, 5), Rect2(329, 32, 16, 6),
+	]
+	for stone in path_stones:
+		draw_rect(stone, Color("dec58e"))
+		draw_rect(Rect2(stone.position + Vector2(2, stone.size.y - 2), Vector2(stone.size.x - 3, 2)), Color("a88458"))
+
+
+func _draw_lounge() -> void:
+	draw_rect(Rect2(15, 59, 227, 267), Color(0.10, 0.16, 0.12, 0.28))
+	draw_rect(Rect2(20, 54, 224, 266), Color("70513b"))
+	draw_rect(Rect2(25, 60, 214, 255), Color("bd8c5d"))
+
+	for y in range(64, 315, 12):
+		draw_line(Vector2(25, y), Vector2(239, y), Color("a87550"), 1.0)
+	for x in range(29, 239, 28):
+		draw_line(Vector2(x, 60), Vector2(x, 315), Color(0.30, 0.20, 0.15, 0.18), 1.0)
+
+	draw_rect(Rect2(15, 43, 234, 40), Color("2f4c4c"))
+	draw_rect(Rect2(20, 48, 224, 28), Color("3f6864"))
+	for x in range(24, 244, 12):
+		draw_line(Vector2(x, 49), Vector2(x - 7, 75), Color("294642"), 3.0)
+	draw_rect(Rect2(25, 76, 214, 35), Color("674634"))
+	draw_rect(Rect2(31, 82, 202, 23), Color("392f29"))
+
+	for x in [40, 58, 76, 188, 206, 224]:
+		draw_rect(Rect2(x, 87, 5, 10), Color("8eb9a2"))
+		draw_rect(Rect2(x + 1, 85, 3, 3), Color("d7c26e"))
+	draw_rect(Rect2(35, 111, 194, 20), Color("573c2e"))
+	draw_rect(Rect2(35, 108, 194, 8), Color("d09a5c"))
+	for x in [56, 92, 128, 164, 200]:
+		draw_rect(Rect2(x - 7, 137, 14, 7), Color("7b4d3b"))
+		draw_rect(Rect2(x - 4, 144, 3, 12), Color("4a342b"))
+		draw_rect(Rect2(x + 2, 144, 3, 12), Color("4a342b"))
+
+	draw_rect(Rect2(40, 176, 80, 54), Color("91555c"))
+	draw_rect(Rect2(45, 181, 70, 44), Color("b66f68"))
+	draw_rect(Rect2(142, 235, 76, 52), Color("456d6b"))
+	draw_rect(Rect2(147, 240, 66, 42), Color("5d8b7d"))
+	for center in [Vector2(80, 202), Vector2(180, 259)]:
+		draw_rect(Rect2(center - Vector2(18, 8), Vector2(36, 16)), Color("5a3e31"))
+		draw_rect(Rect2(center - Vector2(15, 7), Vector2(30, 11)), Color("b27d4e"))
+		draw_rect(Rect2(center + Vector2(-2, 5), Vector2(4, 7)), Color("49332a"))
+
+	for x in [20, 235]:
+		draw_rect(Rect2(x, 72, 7, 247), Color("4c362d"))
+		draw_rect(Rect2(x + 1, 74, 3, 241), Color("8e6142"))
+
+
+func _draw_pond() -> void:
+	var bank := PackedVector2Array([
+		Vector2(461, 55), Vector2(523, 61), Vector2(577, 88), Vector2(616, 132),
+		Vector2(629, 187), Vector2(619, 245), Vector2(586, 298), Vector2(532, 326),
+		Vector2(464, 330), Vector2(399, 309), Vector2(354, 270), Vector2(330, 216),
+		Vector2(334, 157), Vector2(365, 102), Vector2(410, 70),
+	])
+	var water := PackedVector2Array([
+		Vector2(463, 63), Vector2(520, 68), Vector2(570, 93), Vector2(607, 136),
+		Vector2(620, 188), Vector2(610, 240), Vector2(579, 289), Vector2(528, 316),
+		Vector2(466, 320), Vector2(405, 301), Vector2(363, 264), Vector2(340, 214),
+		Vector2(343, 160), Vector2(372, 110), Vector2(414, 78),
+	])
+	draw_colored_polygon(bank, Color("d2bd79"))
+	draw_colored_polygon(water, Color("267f92"))
+
+	var shallow := PackedVector2Array([
+		Vector2(468, 76), Vector2(521, 83), Vector2(562, 105), Vector2(590, 140),
+		Vector2(599, 184), Vector2(589, 226), Vector2(561, 265), Vector2(518, 288),
+		Vector2(469, 293), Vector2(419, 278), Vector2(383, 247), Vector2(363, 207),
+		Vector2(367, 163), Vector2(389, 123), Vector2(423, 93),
+	])
+	draw_colored_polygon(shallow, Color("3999a6"))
+
+	var shift := float(water_frame * 3)
+	for sparkle in [Vector2(389, 133), Vector2(448, 93), Vector2(537, 130), Vector2(572, 226), Vector2(438, 278)]:
+		var point: Vector2 = sparkle + Vector2(fmod(shift, 7.0), 0.0)
+		draw_rect(Rect2(point, Vector2(9, 2)), Color("82d1d3"))
+		draw_rect(Rect2(point + Vector2(3, -2), Vector2(3, 2)), Color("b8e3d5"))
+
+	for pad in [Vector2(393, 185), Vector2(548, 164), Vector2(520, 262)]:
+		draw_rect(Rect2(pad - Vector2(5, 2), Vector2(10, 5)), Color("638e4e"))
+		draw_rect(Rect2(pad + Vector2(1, -1), Vector2(5, 2)), Color("85ad5c"))
+	for fish in [Vector2(475, 225), Vector2(550, 205), Vector2(433, 151)]:
+		draw_rect(Rect2(fish - Vector2(5, 1), Vector2(9, 3)), Color(0.08, 0.27, 0.34, 0.38))
+		draw_rect(Rect2(fish + Vector2(4, -2), Vector2(3, 5)), Color(0.08, 0.27, 0.34, 0.38))
+
+
+func _draw_dock() -> void:
+	draw_rect(Rect2(319, 169, 143, 51), Color(0.10, 0.13, 0.10, 0.30))
+	draw_rect(Rect2(321, 163, 139, 52), Color("5d3e2f"))
+	draw_rect(Rect2(323, 165, 135, 46), Color("a86f45"))
+	for x in range(326, 458, 14):
+		draw_line(Vector2(x, 166), Vector2(x, 210), Color("6d4634"), 2.0)
+	for post in [Vector2(326, 158), Vector2(451, 158), Vector2(326, 207), Vector2(451, 207)]:
+		draw_rect(Rect2(post, Vector2(7, 16)), Color("49342b"))
+		draw_rect(Rect2(post + Vector2(1, 1), Vector2(4, 5)), Color("c18b50"))
+
+
+func _draw_props() -> void:
+	_draw_tree(Vector2(48, 338), Color("477844"))
+	_draw_tree(Vector2(603, 346), Color("3f7140"))
+	_draw_tree(Vector2(615, 62), Color("4b7f47"))
+
+	for bush in [Vector2(260, 54), Vector2(301, 326), Vector2(623, 278), Vector2(267, 102)]:
+		draw_rect(Rect2(bush - Vector2(10, 5), Vector2(20, 10)), Color("345f3c"))
+		draw_rect(Rect2(bush - Vector2(7, 8), Vector2(14, 11)), Color("5c914d"))
+		draw_rect(Rect2(bush - Vector2(2, 7), Vector2(6, 4)), Color("79aa58"))
+
+	for flower in [Vector2(258, 246), Vector2(302, 88), Vector2(313, 303), Vector2(626, 119), Vector2(582, 323)]:
+		draw_rect(Rect2(flower, Vector2(2, 5)), Color("426d3d"))
+		draw_rect(Rect2(flower - Vector2(2, 1), Vector2(6, 3)), Color("e9bf5b"))
+		draw_rect(Rect2(flower, Vector2(2, 2)), Color("f4e3a0"))
+
+	draw_rect(Rect2(268, 38, 49, 35), Color(0.08, 0.12, 0.09, 0.28))
+	draw_rect(Rect2(265, 34, 49, 35), Color("624332"))
+	draw_rect(Rect2(269, 38, 41, 25), Color("c39a61"))
+	draw_rect(Rect2(273, 41, 13, 9), Color("e5d7ae"))
+	draw_rect(Rect2(290, 42, 16, 14), Color("d9856d"))
+	draw_rect(Rect2(270, 68, 5, 13), Color("49332a"))
+	draw_rect(Rect2(305, 68, 5, 13), Color("49332a"))
+
+
+func _draw_tree(base: Vector2, canopy_color: Color) -> void:
+	draw_rect(Rect2(base + Vector2(-4, -24), Vector2(9, 27)), Color("563c2d"))
+	draw_rect(Rect2(base + Vector2(-2, -24), Vector2(4, 24)), Color("8d6040"))
+	draw_rect(Rect2(base + Vector2(-18, -42), Vector2(36, 18)), canopy_color.darkened(0.16))
+	draw_rect(Rect2(base + Vector2(-23, -35), Vector2(46, 17)), canopy_color)
+	draw_rect(Rect2(base + Vector2(-14, -48), Vector2(28, 19)), canopy_color.lightened(0.12))
+	draw_rect(Rect2(base + Vector2(-8, -44), Vector2(9, 6)), Color("79a95b"))
 
 
 func _build_world_labels() -> void:
 	var lounge_label := Label.new()
-	lounge_label.position = Vector2(310.0, 590.0)
+	lounge_label.position = Vector2(151.0, 294.0)
 	lounge_label.text = "THE LOUNGE"
-	lounge_label.add_theme_font_size_override("font_size", 24)
+	lounge_label.add_theme_font_size_override("font_size", 12)
 	lounge_label.add_theme_color_override("font_color", Color("5d4939"))
 	add_child(lounge_label)
 
 	var pond_label := Label.new()
-	pond_label.position = Vector2(870.0, 92.0)
+	pond_label.position = Vector2(437.0, 38.0)
 	pond_label.text = "THE POND"
-	pond_label.add_theme_font_size_override("font_size", 24)
+	pond_label.add_theme_font_size_override("font_size", 12)
 	pond_label.add_theme_color_override("font_color", Color("284f58"))
 	add_child(pond_label)
 
@@ -96,33 +235,33 @@ func _build_connection_panel() -> void:
 	add_child(layer)
 
 	var panel := PanelContainer.new()
-	panel.position = Vector2(20.0, 20.0)
-	panel.custom_minimum_size = Vector2(365.0, 0.0)
+	panel.position = Vector2(8.0, 8.0)
+	panel.custom_minimum_size = Vector2(210.0, 0.0)
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.055, 0.075, 0.08, 0.94)
 	panel_style.border_color = Color("78c6a3")
-	panel_style.set_border_width_all(2)
-	panel_style.corner_radius_top_left = 8
-	panel_style.corner_radius_top_right = 8
-	panel_style.corner_radius_bottom_left = 8
-	panel_style.corner_radius_bottom_right = 8
+	panel_style.set_border_width_all(1)
+	panel_style.corner_radius_top_left = 4
+	panel_style.corner_radius_top_right = 4
+	panel_style.corner_radius_bottom_left = 4
+	panel_style.corner_radius_bottom_right = 4
 	panel.add_theme_stylebox_override("panel", panel_style)
 	layer.add_child(panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 14)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 14)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 7)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 7)
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 4)
 	margin.add_child(column)
 
 	var title := Label.new()
-	title.text = "POND — SHARED ROOM"
-	title.add_theme_font_size_override("font_size", 21)
+	title.text = "POND // SHARED ROOM"
+	title.add_theme_font_size_override("font_size", 12)
 	title.add_theme_color_override("font_color", Color("b9e3c6"))
 	column.add_child(title)
 
@@ -130,29 +269,36 @@ func _build_connection_panel() -> void:
 	name_edit.placeholder_text = "Your name"
 	name_edit.text = "Fisher"
 	name_edit.max_length = 24
+	name_edit.custom_minimum_size.y = 21
+	name_edit.add_theme_font_size_override("font_size", 10)
 	column.add_child(name_edit)
 
 	address_edit = LineEdit.new()
 	address_edit.placeholder_text = "Host address"
 	address_edit.text = "127.0.0.1"
+	address_edit.custom_minimum_size.y = 21
+	address_edit.add_theme_font_size_override("font_size", 10)
 	column.add_child(address_edit)
 
 	var buttons := HBoxContainer.new()
-	buttons.add_theme_constant_override("separation", 8)
+	buttons.add_theme_constant_override("separation", 4)
 	column.add_child(buttons)
 
 	host_button = Button.new()
 	host_button.text = "Host"
+	host_button.add_theme_font_size_override("font_size", 9)
 	host_button.pressed.connect(_start_host)
 	buttons.add_child(host_button)
 
 	join_button = Button.new()
 	join_button.text = "Join"
+	join_button.add_theme_font_size_override("font_size", 9)
 	join_button.pressed.connect(_start_client.bind(""))
 	buttons.add_child(join_button)
 
 	disconnect_button = Button.new()
 	disconnect_button.text = "Disconnect"
+	disconnect_button.add_theme_font_size_override("font_size", 9)
 	disconnect_button.disabled = true
 	disconnect_button.pressed.connect(_disconnect_from_session.bind(true))
 	buttons.add_child(disconnect_button)
@@ -160,12 +306,13 @@ func _build_connection_panel() -> void:
 	status_label = Label.new()
 	status_label.text = "Offline — UDP port %d" % PORT
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status_label.add_theme_font_size_override("font_size", 9)
 	status_label.add_theme_color_override("font_color", Color("d8e5dc"))
 	column.add_child(status_label)
 
 	var help := Label.new()
-	help.text = "Move with WASD, arrow keys, or the left stick."
-	help.add_theme_font_size_override("font_size", 13)
+	help.text = "WASD / arrows / left stick"
+	help.add_theme_font_size_override("font_size", 8)
 	help.add_theme_color_override("font_color", Color("9fb3aa"))
 	column.add_child(help)
 
@@ -390,12 +537,12 @@ func _receive_snapshot(state: Dictionary) -> void:
 
 func _spawn_position(spawn_index: int) -> Vector2:
 	var positions: Array[Vector2] = [
-		Vector2(560.0, 350.0),
-		Vector2(560.0, 430.0),
-		Vector2(620.0, 310.0),
-		Vector2(620.0, 470.0),
-		Vector2(530.0, 510.0),
-		Vector2(530.0, 270.0),
+		Vector2(278.0, 176.0),
+		Vector2(278.0, 215.0),
+		Vector2(310.0, 150.0),
+		Vector2(310.0, 240.0),
+		Vector2(270.0, 270.0),
+		Vector2(285.0, 125.0),
 	]
 	return positions[absi(spawn_index) % positions.size()]
 
