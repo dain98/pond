@@ -2,10 +2,11 @@ class_name PondPlayer
 extends CharacterBody2D
 
 const SPEED := 96.0
-const WORLD_BOUNDS := Rect2(12.0, 32.0, 616.0, 316.0)
-const POND_CENTER := Vector2(480.0, 198.0)
-const POND_RADII := Vector2(146.0, 126.0)
-const DOCK_WALKABLE := Rect2(321.0, 163.0, 139.0, 54.0)
+const WORLD_BOUNDS := Rect2(12.0, 32.0, 1256.0, 676.0)
+const POND_CENTER := Vector2(930.0, 337.0)
+const POND_RADII := Vector2(220.0, 190.0)
+const DOCK_WALKABLE := Rect2(696.0, 282.0, 155.0, 86.0)
+const CREEK_BOUNDS := Rect2(1015.0, 0.0, 76.0, 172.0)
 
 var peer_id := 0
 var display_name := "Player"
@@ -17,6 +18,7 @@ var walk_phase := 0.0
 var is_walking := false
 
 @onready var character_sprite: AnimatedSprite2D = $CharacterSprite
+@onready var player_camera: Camera2D = $Camera
 
 
 func _ready() -> void:
@@ -32,6 +34,7 @@ func configure(new_peer_id: int, new_display_name: String, spawn_position: Vecto
 	target_position = spawn_position
 	player_color = _color_for_name(display_name)
 	$NameLabel.text = display_name
+	player_camera.enabled = peer_id == multiplayer.get_unique_id()
 	queue_redraw()
 
 
@@ -132,6 +135,8 @@ func _update_character_sprite() -> void:
 func _position_is_in_pond(candidate: Vector2) -> bool:
 	if DOCK_WALKABLE.has_point(candidate):
 		return false
+	if CREEK_BOUNDS.has_point(candidate):
+		return true
 	var normalized := (candidate - POND_CENTER) / POND_RADII
 	return normalized.length_squared() < 1.0
 

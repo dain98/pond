@@ -4,6 +4,7 @@ const PORT := 43117
 const MAX_CLIENTS := 8
 const SNAPSHOT_INTERVAL := 1.0 / 20.0
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
+const WORLD_SIZE := Vector2(1280.0, 720.0)
 
 var players: Dictionary = {}
 var player_names: Dictionary = {}
@@ -13,6 +14,7 @@ var run_elapsed := 0.0
 var automated_input_enabled := false
 var automated_direction := Vector2.ZERO
 var automated_spawn_position := Vector2.ZERO
+var command_spawn_override := Vector2(-1.0, -1.0)
 var movement_observed_logged := false
 var water_frame := 0
 
@@ -59,7 +61,7 @@ func _draw() -> void:
 
 
 func _draw_ground() -> void:
-	draw_rect(Rect2(0.0, 0.0, 640.0, 360.0), Color("5e8b55"))
+	draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("5e8b55"))
 
 	var dark_patches: Array[Rect2] = [
 		Rect2(3, 42, 38, 15), Rect2(252, 18, 28, 11), Rect2(292, 286, 40, 16),
@@ -532,13 +534,15 @@ func _receive_snapshot(state: Dictionary) -> void:
 
 
 func _spawn_position(spawn_index: int) -> Vector2:
+	if spawn_index == 0 and command_spawn_override.x >= 0.0:
+		return command_spawn_override
 	var positions: Array[Vector2] = [
-		Vector2(278.0, 176.0),
-		Vector2(278.0, 215.0),
-		Vector2(310.0, 150.0),
-		Vector2(310.0, 240.0),
-		Vector2(270.0, 270.0),
-		Vector2(285.0, 125.0),
+		Vector2(640.0, 360.0),
+		Vector2(640.0, 400.0),
+		Vector2(680.0, 340.0),
+		Vector2(680.0, 420.0),
+		Vector2(600.0, 420.0),
+		Vector2(600.0, 320.0),
 	]
 	return positions[absi(spawn_index) % positions.size()]
 
@@ -587,6 +591,13 @@ func _apply_command_line() -> void:
 		elif argument == "--move-right":
 			automated_input_enabled = true
 			automated_direction = Vector2.RIGHT
+		elif argument.begins_with("--spawn="):
+			var components := argument.trim_prefix("--spawn=").split(",", false, 1)
+			if components.size() == 2:
+				command_spawn_override = Vector2(
+					clampf(components[0].to_float(), 12.0, 1268.0),
+					clampf(components[1].to_float(), 32.0, 708.0)
+				)
 
 	if should_host:
 		_start_host()

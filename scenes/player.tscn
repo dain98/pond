@@ -19,6 +19,12 @@ shape = SubResource("CapsuleShape2D_player")
 position = Vector2(0, -5)
 scale = Vector2(0.333333, 0.333333)
 
+[node name="Camera" type="Camera2D" parent="."]
+enabled = false
+limit_right = 1280
+limit_bottom = 720
+position_smoothing_enabled = false
+
 [node name="NameLabel" type="Label" parent="."]
 offset_left = -40.0
 offset_top = -29.0
