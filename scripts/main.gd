@@ -14,7 +14,6 @@ var automated_input_enabled := false
 var automated_direction := Vector2.ZERO
 var automated_spawn_position := Vector2.ZERO
 var movement_observed_logged := false
-var visual_elapsed := 0.0
 var water_frame := 0
 
 var name_edit: LineEdit
@@ -26,7 +25,6 @@ var disconnect_button: Button
 
 
 func _ready() -> void:
-	_build_world_labels()
 	_build_connection_panel()
 	_connect_multiplayer_signals()
 	_apply_command_line()
@@ -35,11 +33,6 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_update_local_input()
-	visual_elapsed += delta
-	var next_water_frame := int(visual_elapsed * 3.0) % 4
-	if next_water_frame != water_frame:
-		water_frame = next_water_frame
-		queue_redraw()
 
 	if _network_is_active() and multiplayer.is_server():
 		snapshot_elapsed += delta
@@ -55,6 +48,9 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	# The procedural scene remains as a lightweight fallback for missing assets.
+	if has_node("Background") and $Background.visible:
+		return
 	_draw_ground()
 	_draw_lounge()
 	_draw_pond()

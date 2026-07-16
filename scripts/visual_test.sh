@@ -54,14 +54,17 @@ render_movie host 12 8 --server --name=VisualHost
 render_movie walking 45 34 --server --name=Walker --move-right
 
 "$GODOT_BIN" --headless --path "$ROOT_DIR" -- \
-  --server --name=VisualHost --run-seconds=5 \
+  --server --name=VisualHost \
   >"$ARTIFACT_DIR/joined-server.log" 2>&1 &
 SERVER_PID=$!
 
 sleep 0.75
-render_movie joined 60 45 --join=127.0.0.1 --name=VisualGuest
+# Movie Maker alternates readable and stale swap-chain frames under llvmpipe.
+# Capture an even frame, as the host and walking scenarios do above.
+render_movie joined 60 44 --join=127.0.0.1 --name=VisualGuest
 
-wait "$SERVER_PID"
+kill "$SERVER_PID" 2>/dev/null || true
+wait "$SERVER_PID" 2>/dev/null || true
 SERVER_PID=""
 
 grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/host.log"
