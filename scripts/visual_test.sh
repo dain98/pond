@@ -51,6 +51,7 @@ render_movie() {
 }
 
 render_movie host 12 8 --server --name=VisualHost
+render_movie walking 45 34 --server --name=Walker --move-right
 
 "$GODOT_BIN" --headless --path "$ROOT_DIR" -- \
   --server --name=VisualHost --run-seconds=5 \
@@ -64,6 +65,7 @@ wait "$SERVER_PID"
 SERVER_PID=""
 
 grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/host.log"
+grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/walking.log"
 grep -q "POND_PLAYER_REGISTERED" "$ARTIFACT_DIR/joined-server.log"
 grep -q "POND_CONNECTED" "$ARTIFACT_DIR/joined.log"
 
@@ -73,7 +75,7 @@ if grep -qE "SCRIPT ERROR|Parse Error|ERROR:" "$ARTIFACT_DIR"/*.log; then
   exit 1
 fi
 
-for scenario in host joined; do
+for scenario in host joined walking; do
   actual="$ARTIFACT_DIR/$scenario.png"
   baseline="$BASELINE_DIR/$scenario.png"
   difference="$ARTIFACT_DIR/$scenario.diff.png"

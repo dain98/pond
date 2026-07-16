@@ -16,6 +16,14 @@ var facing := Vector2.DOWN
 var walk_phase := 0.0
 var is_walking := false
 
+@onready var character_sprite: AnimatedSprite2D = $CharacterSprite
+
+
+func _ready() -> void:
+	character_sprite.sprite_frames = FisherSpriteFrames.get_frames()
+	character_sprite.animation = &"down"
+	character_sprite.frame = 0
+
 
 func configure(new_peer_id: int, new_display_name: String, spawn_position: Vector2) -> void:
 	peer_id = new_peer_id
@@ -51,6 +59,9 @@ func apply_server_position(server_position: Vector2) -> void:
 
 
 func _draw() -> void:
+	if character_sprite and character_sprite.sprite_frames:
+		return
+
 	var bob := -1.0 if is_walking and int(walk_phase) % 2 == 0 else 0.0
 	var step := 1.0 if is_walking and int(walk_phase) % 2 == 0 else -1.0
 
@@ -88,7 +99,34 @@ func _update_walk_animation(direction: Vector2, delta: float) -> void:
 		walk_phase = fmod(walk_phase + delta * 9.0, 4.0)
 	else:
 		walk_phase = 0.0
+	_update_character_sprite()
 	queue_redraw()
+
+
+func _update_character_sprite() -> void:
+	if not character_sprite or not character_sprite.sprite_frames:
+		return
+
+	var next_animation := &"down"
+	if absf(facing.x) > absf(facing.y):
+		next_animation = &"side"
+		character_sprite.flip_h = facing.x < 0.0
+	elif facing.y < 0.0:
+		next_animation = &"up"
+		character_sprite.flip_h = false
+	else:
+		character_sprite.flip_h = false
+
+	if character_sprite.animation != next_animation:
+		character_sprite.animation = next_animation
+		character_sprite.frame = 0
+
+	if is_walking:
+		if not character_sprite.is_playing():
+			character_sprite.play()
+	else:
+		character_sprite.pause()
+		character_sprite.frame = 0
 
 
 func _position_is_in_pond(candidate: Vector2) -> bool:
