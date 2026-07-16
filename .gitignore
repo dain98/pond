@@ -1,0 +1,10 @@
+# Godot-generated files
+.godot/
+
+# Local exports and editor settings
+builds/
+export_presets.cfg
+
+# Platform noise
+.DS_Store
+Thumbs.db
