@@ -76,7 +76,7 @@ func _draw() -> void:
 
 func _build_world_labels() -> void:
 	var lounge_label := Label.new()
-	lounge_label.position = Vector2(78.0, 163.0)
+	lounge_label.position = Vector2(310.0, 590.0)
 	lounge_label.text = "THE LOUNGE"
 	lounge_label.add_theme_font_size_override("font_size", 24)
 	lounge_label.add_theme_color_override("font_color", Color("5d4939"))
@@ -189,7 +189,7 @@ func _start_host() -> void:
 	multiplayer.multiplayer_peer = peer
 	var host_name := _sanitized_name(name_edit.text)
 	player_names[1] = host_name
-	_spawn_player_local(1, host_name, _spawn_position(1))
+	_spawn_player_local(1, host_name, _spawn_position(0))
 	_set_connected_ui(true)
 	_set_status("Hosting on UDP port %d as %s." % [PORT, host_name])
 	print("POND_SERVER_STARTED port=%d name=%s" % [PORT, host_name])
@@ -282,8 +282,9 @@ func _register_player(requested_name: String) -> void:
 		)
 
 	var safe_name := _sanitized_name(requested_name)
+	var spawn_position := _spawn_position(player_names.size())
 	player_names[sender_id] = safe_name
-	_spawn_player.rpc(sender_id, safe_name, _spawn_position(sender_id))
+	_spawn_player.rpc(sender_id, safe_name, spawn_position)
 	_set_status("Hosting %d player(s) on UDP port %d." % [players.size(), PORT])
 	print("POND_PLAYER_REGISTERED id=%d name=%s" % [sender_id, safe_name])
 
@@ -387,7 +388,7 @@ func _receive_snapshot(state: Dictionary) -> void:
 				print("POND_MOVEMENT_OBSERVED id=%d position=%s" % [peer_id, state[peer_id]])
 
 
-func _spawn_position(peer_id: int) -> Vector2:
+func _spawn_position(spawn_index: int) -> Vector2:
 	var positions: Array[Vector2] = [
 		Vector2(560.0, 350.0),
 		Vector2(560.0, 430.0),
@@ -396,7 +397,7 @@ func _spawn_position(peer_id: int) -> Vector2:
 		Vector2(530.0, 510.0),
 		Vector2(530.0, 270.0),
 	]
-	return positions[absi(peer_id - 1) % positions.size()]
+	return positions[absi(spawn_index) % positions.size()]
 
 
 func _sanitized_name(value: String) -> String:

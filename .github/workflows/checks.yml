@@ -1,0 +1,52 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Project, multiplayer, and visuals
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GODOT_BIN: /usr/local/bin/godot
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install visual-test dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb xauth
+
+      - name: Install Godot 4.7
+        run: |
+          curl -fsSL --retry 3 \
+            -o /tmp/godot.zip \
+            'https://downloads.godotengine.org/?flavor=stable&platform=linux.64&slug=linux.x86_64.zip&version=4.7'
+          echo '0b1a6c54c2c619c12e169fe9241edda4b81080b519451cec2984bf0d2c6cb73c  /tmp/godot.zip' \
+            | sha256sum --check
+          python3 -m zipfile -e /tmp/godot.zip /tmp/godot
+          sudo install -m 0755 \
+            /tmp/godot/Godot_v4.7-stable_linux.x86_64 \
+            "$GODOT_BIN"
+
+      - name: Check project
+        run: scripts/check_project.sh
+
+      - name: Test multiplayer
+        run: scripts/smoke_test.sh
+
+      - name: Test rendered visuals
+        run: scripts/visual_test.sh
+
+      - name: Upload visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-artifacts
+          path: artifacts/visual/
+          if-no-files-found: ignore

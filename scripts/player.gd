@@ -16,7 +16,7 @@ func configure(new_peer_id: int, new_display_name: String, spawn_position: Vecto
 	display_name = new_display_name
 	position = spawn_position
 	target_position = spawn_position
-	player_color = _color_for_peer(peer_id)
+	player_color = _color_for_name(display_name)
 	$NameLabel.text = display_name
 	queue_redraw()
 
@@ -49,7 +49,7 @@ func _draw() -> void:
 	draw_rect(Rect2(2.0, 18.0, 6.0, 4.0), Color("263b40"))
 
 
-func _color_for_peer(id: int) -> Color:
+func _color_for_name(player_name: String) -> Color:
 	var palette: Array[Color] = [
 		Color("78c6a3"),
 		Color("f2a65a"),
@@ -58,4 +58,4 @@ func _color_for_peer(id: int) -> Color:
 		Color("e6c15a"),
 		Color("74c9d4"),
 	]
-	return palette[absi(id) % palette.size()]
+	return palette[absi(player_name.hash()) % palette.size()]

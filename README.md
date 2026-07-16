@@ -44,4 +44,28 @@ Set `GODOT_BIN` and run the automated two-process smoke test:
 GODOT_BIN=/path/to/godot scripts/smoke_test.sh
 ```
 
+Validate project loading and script parsing:
+
+```sh
+GODOT_BIN=/path/to/godot scripts/check_project.sh
+```
+
+On Linux, rendered regression tests run inside a virtual X display and leave
+their screenshots in `artifacts/visual/`:
+
+```sh
+GODOT_BIN=/path/to/godot scripts/visual_test.sh
+```
+
+The visual test requires `xvfb-run`. Intentionally update its committed
+baselines after reviewing the new screenshots with:
+
+```sh
+UPDATE_BASELINES=1 GODOT_BIN=/path/to/godot scripts/visual_test.sh
+```
+
+All three checks run automatically in GitHub Actions on pushes and pull
+requests. Failed visual checks upload their actual and difference images as CI
+artifacts.
+
 Project planning lives in [docs/README.md](docs/README.md).

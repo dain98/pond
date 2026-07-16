@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GODOT_BIN="${GODOT_BIN:-godot4}"
+GODOT_BIN="${GODOT_BIN:-godot}"
 LOG_DIR="$(mktemp -d)"
 SERVER_PID=""
 
