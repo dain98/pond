@@ -49,6 +49,9 @@ emotes, casting, reeling, and catch reveals without changing the base scale.
 - Compatibility renderer
 - Server-authoritative positions with client-side visual interpolation
 
-The current procedural scene is a visual prototype. Once scale and composition
-feel right in playtests, its shapes should be replaced gradually with an
-original tileset and sprite sheets rather than with one large background image.
+The current settlement master is a 1920×1080 layout prototype spanning nine
+camera regions. It establishes district scale and composition, but it is still
+one large background image. Once the layout feels right in playtests, it should
+be decomposed gradually into an original ground tileset, structures, props,
+water animation, and foreground occlusion layers rather than treated as the
+final production map format.

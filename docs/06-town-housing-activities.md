@@ -18,6 +18,29 @@ Players should naturally pass through the commons while moving between homes,
 the pond, and other destinations. This preserves social density even on a small
 server.
 
+### Prototype settlement base map
+
+The current 1920×1080 master map turns this diagram into nine connected camera
+regions:
+
+- The central crossroads joins the lounge, bulletin board, main pond dock, and
+  southern social row.
+- The western loop contains resident plots while still routing foot traffic
+  back through the commons.
+- The northern woods contain two bridged creek branches and a quieter fishing
+  approach.
+- The eastern shoreline adds two docks, bank-fishing space, picnic clearings,
+  and a woodland loop.
+- The southern row gives the cafe, bar, and game room distinct physical spaces
+  beside a flexible public event lawn.
+
+The illustrated map remains a prototype master texture, but gameplay geometry
+is already separate in `scripts/world_geometry.gd`. Water, bridges, docks,
+building walls, world limits, and major wooded obstacles can therefore evolve
+without coupling server rules to the rendered image. The next art-production
+step is to decompose the approved layout into ground tiles, structures, props,
+and foreground occlusion layers.
+
 ## Public spaces
 
 - The cafe supports quiet conversation and ambient events.

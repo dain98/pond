@@ -2,11 +2,6 @@ class_name PondPlayer
 extends CharacterBody2D
 
 const SPEED := 96.0
-const WORLD_BOUNDS := Rect2(12.0, 32.0, 1256.0, 676.0)
-const POND_CENTER := Vector2(930.0, 337.0)
-const POND_RADII := Vector2(220.0, 190.0)
-const DOCK_WALKABLE := Rect2(696.0, 282.0, 155.0, 86.0)
-const CREEK_BOUNDS := Rect2(1015.0, 0.0, 76.0, 172.0)
 
 var peer_id := 0
 var display_name := "Player"
@@ -25,6 +20,8 @@ func _ready() -> void:
 	character_sprite.sprite_frames = FisherSpriteFrames.get_frames()
 	character_sprite.animation = &"down"
 	character_sprite.frame = 0
+	player_camera.limit_right = int(PondWorldGeometry.WORLD_SIZE.x)
+	player_camera.limit_bottom = int(PondWorldGeometry.WORLD_SIZE.y)
 
 
 func configure(new_peer_id: int, new_display_name: String, spawn_position: Vector2) -> void:
@@ -43,11 +40,9 @@ func _physics_process(delta: float) -> void:
 		var previous_position := position
 		velocity = input_direction.limit_length(1.0) * SPEED
 		move_and_slide()
-		if _position_is_in_pond(position):
+		if not PondWorldGeometry.is_position_walkable(position):
 			position = previous_position
 			velocity = Vector2.ZERO
-		position.x = clampf(position.x, WORLD_BOUNDS.position.x, WORLD_BOUNDS.end.x)
-		position.y = clampf(position.y, WORLD_BOUNDS.position.y, WORLD_BOUNDS.end.y)
 		target_position = position
 		_update_walk_animation(input_direction, delta)
 	else:
@@ -130,15 +125,6 @@ func _update_character_sprite() -> void:
 	else:
 		character_sprite.pause()
 		character_sprite.frame = 0
-
-
-func _position_is_in_pond(candidate: Vector2) -> bool:
-	if DOCK_WALKABLE.has_point(candidate):
-		return false
-	if CREEK_BOUNDS.has_point(candidate):
-		return true
-	var normalized := (candidate - POND_CENTER) / POND_RADII
-	return normalized.length_squared() < 1.0
 
 
 func _color_for_name(player_name: String) -> Color:

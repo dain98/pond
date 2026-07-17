@@ -21,8 +21,6 @@ scale = Vector2(0.333333, 0.333333)
 
 [node name="Camera" type="Camera2D" parent="."]
 enabled = false
-limit_right = 1280
-limit_bottom = 720
 position_smoothing_enabled = false
 
 [node name="NameLabel" type="Label" parent="."]

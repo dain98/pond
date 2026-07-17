@@ -37,6 +37,9 @@ jobs:
       - name: Check project
         run: scripts/check_project.sh
 
+      - name: Test world geometry
+        run: scripts/world_geometry_test.sh
+
       - name: Test multiplayer
         run: scripts/smoke_test.sh
 

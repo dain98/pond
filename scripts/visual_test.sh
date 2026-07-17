@@ -52,7 +52,8 @@ render_movie() {
 
 render_movie host 12 8 --server --name=VisualHost
 render_movie walking 45 34 --server --name=Walker --move-right
-render_movie edge 12 8 --server --name=EdgeWalker --spawn=1240,688
+render_movie housing 12 8 --server --name=Resident --spawn=300,320
+render_movie edge 12 8 --server --name=EdgeWalker --spawn=1880,1048
 
 "$GODOT_BIN" --headless --path "$ROOT_DIR" -- \
   --server --name=VisualHost \
@@ -70,6 +71,7 @@ SERVER_PID=""
 
 grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/host.log"
 grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/walking.log"
+grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/housing.log"
 grep -q "POND_SERVER_STARTED" "$ARTIFACT_DIR/edge.log"
 grep -q "POND_PLAYER_REGISTERED" "$ARTIFACT_DIR/joined-server.log"
 grep -q "POND_CONNECTED" "$ARTIFACT_DIR/joined.log"
@@ -80,7 +82,7 @@ if grep -qE "SCRIPT ERROR|Parse Error|ERROR:" "$ARTIFACT_DIR"/*.log; then
   exit 1
 fi
 
-for scenario in host joined walking edge; do
+for scenario in host joined walking housing edge; do
   actual="$ARTIFACT_DIR/$scenario.png"
   baseline="$BASELINE_DIR/$scenario.png"
   difference="$ARTIFACT_DIR/$scenario.diff.png"
